@@ -2,9 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemo',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'cosmetic-ai-assistant.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'cosmetic-ai-assistant',
+  apiKey: "AIzaSyD2ulVf4M8_u9xBksCyk45hKV-Kz6uyW5Y",
+  authDomain: "cosmetic-ai-assistant.firebaseapp.com",
+  projectId: "cosmetic-ai-assistant",
+  storageBucket: "cosmetic-ai-assistant.firebasestorage.app",
+  messagingSenderId: "265928858202",
+  appId: "1:265928858202:web:c47bbf5c38b151007d9663",
+  measurementId: "G-TBRR5JT93V"
 };
 
 const app = initializeApp(firebaseConfig);
