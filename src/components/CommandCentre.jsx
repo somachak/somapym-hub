@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { projects as staticProjects } from '../data/projects';
+import html2canvas from 'html2canvas';
 
 /* ─── Helpers ─── */
 
@@ -434,14 +435,27 @@ function FeedbackForm({ onSubmit }) {
   const [severity, setSeverity] = useState('Minor');
   const [steps, setSteps] = useState('');
   const [project, setProject] = useState('cosmetic-ai');
+  const [screenshot, setScreenshot] = useState(null);
+  const [capturing, setCapturing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const captureScreenshot = async () => {
+    setCapturing(true);
+    try {
+      const canvas = await html2canvas(document.body, { useCORS: true, scale: 0.5, logging: false });
+      setScreenshot(canvas.toDataURL('image/jpeg', 0.7));
+    } catch (err) {
+      console.error('Screenshot failed:', err);
+    }
+    setCapturing(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
     setSubmitting(true);
-    await onSubmit({ title, type, severity, stepsToReproduce: steps, projectId: project, source: 'Dashboard' });
-    setTitle(''); setSteps(''); setIsOpen(false); setSubmitting(false);
+    await onSubmit({ title, type, severity, stepsToReproduce: steps, projectId: project, source: 'Dashboard', screenshot });
+    setTitle(''); setSteps(''); setScreenshot(null); setIsOpen(false); setSubmitting(false);
   };
 
   if (!isOpen) {
@@ -484,6 +498,29 @@ function FeedbackForm({ onSubmit }) {
         </select>
       </div>
       <textarea placeholder="Steps to reproduce or details (optional)" value={steps} onChange={e => setSteps(e.target.value)} rows={3} style={{ ...inputStyle, marginBottom: 12, resize: 'vertical' }} />
+      {/* Screenshot capture */}
+      <div style={{ marginBottom: 12 }}>
+        <button type="button" onClick={captureScreenshot} disabled={capturing} style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+          background: 'white', border: '1px solid var(--border)', borderRadius: 8,
+          cursor: 'pointer', color: 'var(--text-muted)', fontSize: '12px', fontFamily: 'var(--font-body)',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>screenshot_monitor</span>
+          {capturing ? 'Capturing...' : screenshot ? 'Retake screenshot' : 'Capture screenshot'}
+        </button>
+        {screenshot && (
+          <div style={{ marginTop: 8, position: 'relative', display: 'inline-block' }}>
+            <img src={screenshot} alt="Screenshot" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid var(--border)' }} />
+            <button type="button" onClick={() => setScreenshot(null)} style={{
+              position: 'absolute', top: 4, right: 4, background: 'rgba(20,20,19,0.7)',
+              border: 'none', borderRadius: '50%', width: 22, height: 22,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'white' }}>close</span>
+            </button>
+          </div>
+        )}
+      </div>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button type="button" onClick={() => setIsOpen(false)} style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '13px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}>Cancel</button>
         <button type="submit" disabled={submitting || !title.trim()} style={{ padding: '8px 16px', borderRadius: 8, background: '#d97757', border: 'none', color: 'white', fontSize: '13px', fontWeight: 500, fontFamily: 'var(--font-body)', cursor: 'pointer', opacity: submitting || !title.trim() ? 0.5 : 1 }}>{submitting ? 'Saving...' : 'Submit'}</button>
@@ -508,6 +545,29 @@ function Section({ icon, title, children, defaultOpen = true }) {
 
 /* ─── Main Component ─── */
 
+/* ─── Global Project Filter Bar ─── */
+
+function GlobalFilter({ selected, onChange }) {
+  const allOpts = [{ id: 'all', name: 'All Projects', color: 'var(--text)' }, ...staticProjects.map(p => ({ id: p.id, name: p.name, color: PROJECT_COLORS[p.id] || '#bcd1ca' }))];
+  return (
+    <div style={{
+      display: 'flex', gap: 8, marginBottom: 'var(--space-lg)', padding: '12px 0',
+      borderBottom: '1px solid var(--border)', flexWrap: 'wrap',
+    }}>
+      {allOpts.map(opt => (
+        <button key={opt.id} onClick={() => onChange(opt.id)} style={{
+          fontSize: '12px', padding: '6px 14px', borderRadius: 20,
+          border: selected === opt.id ? 'none' : '1px solid var(--border)',
+          background: selected === opt.id ? opt.color : 'transparent',
+          color: selected === opt.id ? '#fff' : 'var(--text-muted)',
+          cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500,
+          transition: 'all 0.15s',
+        }}>{opt.name}</button>
+      ))}
+    </div>
+  );
+}
+
 export default function CommandCentre() {
   const [tasks, setTasks] = useState([]);
   const [feedback, setFeedback] = useState([]);
@@ -515,9 +575,13 @@ export default function CommandCentre() {
   const [timelineFilter, setTimelineFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [expandedStat, setExpandedStat] = useState(null);
+  const [globalFilter, setGlobalFilter] = useState('all');
 
   const cosmeticAI = staticProjects.find(p => p.id === 'cosmetic-ai');
   const daysToLaunch = getDaysUntil(cosmeticAI?.launchDate);
+
+  // Filtered projects based on global filter
+  const filteredProjects = globalFilter === 'all' ? staticProjects : staticProjects.filter(p => p.id === globalFilter);
 
   // Firestore listeners
   useEffect(() => {
@@ -535,13 +599,14 @@ export default function CommandCentre() {
     } catch {}
   }, []);
 
-  // All tasks from all projects (static + Firestore)
-  const allTasks = tasks.length > 0 ? tasks : staticProjects.flatMap(p => p.openTasks || []);
+  // All tasks from all projects (static + Firestore), filtered by global filter
+  const allTasksRaw = tasks.length > 0 ? tasks : staticProjects.flatMap(p => (p.openTasks || []).map(t => ({ ...t, projectId: t.projectId || p.id })));
+  const allTasks = globalFilter === 'all' ? allTasksRaw : allTasksRaw.filter(t => t.projectId === globalFilter);
   const openTasksList = allTasks.filter(t => t.status !== 'done');
   const bugTasks = allTasks.filter(t => t.type === 'Bug' && t.status !== 'done');
 
-  // Timeline from static data
-  const displayTimeline = staticProjects
+  // Timeline from static data, filtered by global filter
+  const displayTimeline = filteredProjects
     .flatMap(p => (p.recentCommits || []).map(c => ({
       date: c.date, text: c.message, projectName: p.name, projectId: p.id,
       color: PROJECT_COLORS[p.id] || '#bcd1ca', category: parseCommitCategory(c.message),
@@ -551,9 +616,9 @@ export default function CommandCentre() {
     .filter(item => categoryFilter === 'All' || item.category === categoryFilter)
     .slice(0, 8);
 
-  // Proactive data
-  const focus = pickTodaysFocus(staticProjects);
-  const recs = generateRecommendations(staticProjects);
+  // Proactive data — filtered by global selection
+  const focus = pickTodaysFocus(filteredProjects);
+  const recs = generateRecommendations(filteredProjects);
 
   // Actions
   const handleTaskToggle = async (task) => {
@@ -594,13 +659,16 @@ export default function CommandCentre() {
   return (
     <div>
       {/* Greeting */}
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
+      <div style={{ marginBottom: 4 }}>
         <h1 style={{ marginBottom: '4px', fontSize: '1.75rem', color: 'var(--text)' }}>{getGreeting()}, Soma</h1>
         <p style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
           {daysToLaunch !== null && `${daysToLaunch} days to Cosmetic AI launch. `}
           {cosmeticAI && `Last active: ${new Date(cosmeticAI.lastWorked).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} (${getDaysSince(cosmeticAI.lastWorked)}d ago)`}
         </p>
       </div>
+
+      {/* Global Project Filter */}
+      <GlobalFilter selected={globalFilter} onChange={setGlobalFilter} />
 
       {/* TODAY'S FOCUS — the one thing to do */}
       <TodaysFocus focus={focus} />
@@ -693,8 +761,8 @@ export default function CommandCentre() {
 
       {/* Projects */}
       <Section icon="folder_open" title="Projects">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-          {staticProjects.map(p => <ProjectCard key={p.id} project={p} />)}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(filteredProjects.length, 4)}, 1fr)`, gap: 14 }}>
+          {filteredProjects.map(p => <ProjectCard key={p.id} project={p} />)}
         </div>
       </Section>
     </div>
