@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
-  /* Anthropic Color System */
-  --bg: #faf9f5;
-  --bg-secondary: #f0eee6;
+  /* Claude Tutorials Color System — light bg, dark text */
+  --bg: #ffffff;
+  --bg-secondary: #faf9f5;
   --surface: #ffffff;
-  --surface-low: #f4f4f1;
+  --surface-low: #f5f4ed;
   --surface-high: #e8e6dc;
   --text: #141413;
   --text-secondary: #3d3d3a;
-  --text-muted: #87867f;
-  --text-subtle: #b0aea5;
+  --text-muted: #73726c;
+  --text-subtle: #9c9a92;
   --primary: #3d3d3a;
   --primary-dim: #141413;
   --accent: #d97757;
