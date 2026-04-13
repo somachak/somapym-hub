@@ -4,7 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import AuthGate from './components/AuthGate';
 import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
+import CommandCentre from './components/CommandCentre';
 import AppDetail from './components/AppDetail';
 
 export default function App() {
@@ -25,7 +25,7 @@ export default function App() {
       <AuthGate>
         <Layout user={user}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<CommandCentre />} />
             <Route path="/app/:slug" element={<AppDetail />} />
           </Routes>
         </Layout>

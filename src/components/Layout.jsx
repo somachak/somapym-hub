@@ -41,7 +41,7 @@ export default function Layout({ user, children }) {
               SomaPym
             </Link>
 
-            {/* Nav Links */}
+            {/* Nav Links + Countdown */}
             <div className="flex items-center gap-xl">
               <Link
                 to="/"
@@ -54,22 +54,22 @@ export default function Layout({ user, children }) {
                 onMouseEnter={(e) => (e.target.style.color = 'var(--accent)')}
                 onMouseLeave={(e) => (e.target.style.color = 'var(--text)')}
               >
-                Dashboard
+                Command Centre
               </Link>
-              <a
-                href="#"
-                style={{
-                  color: 'var(--text)',
-                  fontWeight: '500',
-                  fontSize: '0.95rem',
-                  transition: 'color var(--transition-fast)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = 'var(--accent)')}
-                onMouseLeave={(e) => (e.target.style.color = 'var(--text)')}
-              >
-                Apps
-              </a>
+              <div style={{
+                background: 'var(--pastel-green)',
+                color: 'var(--text-secondary)',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--olive)' }}>rocket_launch</span>
+                {Math.max(0, Math.ceil((new Date('2026-05-15') - new Date()) / (1000*60*60*24)))}d to launch
+              </div>
             </div>
 
             {/* User Menu */}
