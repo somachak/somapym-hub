@@ -20,4 +20,22 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 
+// Allowlist of emails granted access to the Command Centre.
+// To grant access to a new person, replace one of the empty slots with their email.
+// To revoke access, set their slot back to ''.
+// Empty slots are ignored — they're just placeholders for future invites.
+export const ALLOWED_EMAILS = [
+  'pixelartinc@gmail.com',
+  '', // slot 2 — e.g. 'lucas@example.com'
+  '', // slot 3
+  '', // slot 4
+  '', // slot 5
+  '', // slot 6
+];
+
+export function isAllowedEmail(email) {
+  if (!email) return false;
+  return ALLOWED_EMAILS.filter(Boolean).includes(email);
+}
+
 export default app;

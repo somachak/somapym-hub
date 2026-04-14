@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, isAllowedEmail } from './firebase';
 import AuthGate from './components/AuthGate';
 import Layout from './components/Layout';
 import CommandCentre from './components/CommandCentre';
@@ -12,7 +12,7 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser && currentUser.email === 'pixelartinc@gmail.com') {
+      if (currentUser && isAllowedEmail(currentUser.email)) {
         setUser(currentUser);
       }
     });

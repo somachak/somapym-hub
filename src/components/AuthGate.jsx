@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, isAllowedEmail } from '../firebase';
 import LoginPage from './LoginPage';
 
 export default function AuthGate({ children }) {
@@ -10,8 +10,7 @@ export default function AuthGate({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        const email = currentUser.email || '';
-        if (email === 'pixelartinc@gmail.com') {
+        if (isAllowedEmail(currentUser.email)) {
           setUser(currentUser);
         } else {
           signOut(auth).then(() => {
@@ -30,11 +29,10 @@ export default function AuthGate({ children }) {
   const handleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const email = result.user.email || '';
-      
-      if (email !== 'pixelartinc@gmail.com') {
+
+      if (!isAllowedEmail(result.user.email)) {
         await signOut(auth);
-        alert('Please sign in with pixelartinc@gmail.com');
+        alert('This email is not on the allowlist. Contact the admin to be added.');
       }
     } catch (error) {
       console.error('Sign-in error:', error);
