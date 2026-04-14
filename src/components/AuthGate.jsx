@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 import { auth, googleProvider, isAllowedEmail } from '../firebase';
 import LoginPage from './LoginPage';
 
@@ -8,6 +8,13 @@ export default function AuthGate({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Capture result if we just returned from a signInWithRedirect flow.
+    // This is a no-op on normal page loads. onAuthStateChanged also fires,
+    // so we don't need to setUser here — the listener below handles it.
+    getRedirectResult(auth).catch((err) => {
+      console.error('Redirect sign-in error:', err);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         if (isAllowedEmail(currentUser.email)) {
@@ -28,6 +35,7 @@ export default function AuthGate({ children }) {
 
   const handleSignIn = async () => {
     try {
+      // Try popup first — faster UX, no full page navigation.
       const result = await signInWithPopup(auth, googleProvider);
 
       if (!isAllowedEmail(result.user.email)) {
@@ -35,7 +43,22 @@ export default function AuthGate({ children }) {
         alert('This email is not on the allowlist. Contact the admin to be added.');
       }
     } catch (error) {
-      console.error('Sign-in error:', error);
+      // Browsers (especially on localhost) often block OAuth popups.
+      // Fall back to redirect — slower but works everywhere.
+      if (
+        error.code === 'auth/popup-blocked' ||
+        error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/cancelled-popup-request'
+      ) {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          // Page navigates away to Google. We come back via getRedirectResult().
+        } catch (redirectError) {
+          console.error('Redirect sign-in error:', redirectError);
+        }
+      } else {
+        console.error('Sign-in error:', error);
+      }
     }
   };
 
