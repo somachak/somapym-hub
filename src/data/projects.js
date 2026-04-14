@@ -54,6 +54,7 @@ export const projects = [
     description: 'ML & Statistics interactive learning labs with animated lessons',
     techStack: ['React', 'Vite', 'Recharts'],
     gitHubUrl: 'https://github.com/somachak/anaconda-learning-hub',
+    deployUrl: 'https://anaconda-learning-hub.pages.dev',
     localPath: '~/Desktop/Desktop March 2026/Coding & Development/ANACONDA LEARNING/anaconda-hub/',
     lastCommit: 'Add Bayes\' Intuition Builder lab — interactive Split·Count·Spin deep dive',
     lastWorked: '2026-03-23',
