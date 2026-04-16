@@ -21,7 +21,7 @@ export const projects = [
       deploy: 60,
       uiPolish: 30,
     },
-    commitCount: 42,
+    commitCount: 252,
     pipeline: [
       { step: 'Design', completed: true },
       { step: 'Testing', completed: true },
@@ -41,7 +41,7 @@ export const projects = [
       { id: 't2', title: 'Run pipeline enrichment on remaining ~500 products', type: 'Pipeline', priority: 'critical', status: 'todo', context: 'scripts/pipeline/pubchem_enrichment.py — run against merged_ingredient_database.json' },
       { id: 't3', title: 'Test pipeline v2 end-to-end with full 1,935 product dataset', type: 'Test', priority: 'critical', status: 'todo', context: 'python scripts/pipeline/transform_pipeline.py — verify output in scripts/pipeline/output/' },
       { id: 't4', title: 'Make ingredient search mobile responsive', type: 'Polish', priority: 'high', status: 'todo', context: 'Frontend search page doesn\'t stack on narrow viewports' },
-      { id: 't5', title: 'Add in-app feedback button with screenshot capture', type: 'Feature', priority: 'high', status: 'todo', context: 'Use html2canvas for screenshot, save to Firestore feedback collection' },
+      { id: 't5', title: 'Add in-app feedback button with screenshot upload', type: 'Feature', priority: 'high', status: 'todo', context: 'Reuse the FeedbackForm pattern from somapym-hub: file upload + ⌘V paste handler with canvas-based JPEG compression to ~1600px max dim. Saves to Firestore feedback collection.' },
       { id: 't6', title: 'Implement formulation save/load from Firestore', type: 'Feature', priority: 'medium', status: 'todo', context: 'Users can create formulations but can\'t save them yet' },
     ],
   },
@@ -60,7 +60,7 @@ export const projects = [
     lastWorked: '2026-03-23',
     progress: 60,
     nextAction: 'Make the labs more beginner-friendly — simplify language and add "What you\'ll learn" intro cards',
-    commitCount: 18,
+    commitCount: 55,
     pipeline: [
       { step: 'Design', completed: true },
       { step: 'Testing', completed: true },
@@ -94,7 +94,7 @@ export const projects = [
     lastWorked: '2026-03-29',
     progress: 75,
     nextAction: 'Test Colorway Lab end-to-end and fix any visual regression issues',
-    commitCount: 24,
+    commitCount: 75,
     pipeline: [
       { step: 'Design', completed: true },
       { step: 'Testing', completed: true },
